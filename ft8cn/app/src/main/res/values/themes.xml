@@ -10,8 +10,59 @@
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/ft8cn_brand_bar_variant</item>
+        <!-- 界面品牌表面颜色（工具栏、选项卡等），默认紫色 -->
+        <item name="ft8cn_brand_bar">@color/day_bar_purple</item>
+        <item name="ft8cn_brand_bar_variant">@color/day_bar_purple_dark</item>
 
+    </style>
+
+    <!-- ===== 日间可选配色（由 ThemeManager 在运行时应用） ===== -->
+    <style name="ThemeOverlay.Ft8CN.DayPurple" parent="">
+        <item name="ft8cn_brand_bar">@color/day_bar_purple</item>
+        <item name="ft8cn_brand_bar_variant">@color/day_bar_purple_dark</item>
+        <item name="colorPrimary">@color/day_bar_purple</item>
+        <item name="colorPrimaryVariant">@color/day_bar_purple_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+    <style name="ThemeOverlay.Ft8CN.DayBlue" parent="">
+        <item name="ft8cn_brand_bar">@color/day_bar_blue</item>
+        <item name="ft8cn_brand_bar_variant">@color/day_bar_blue_dark</item>
+        <item name="colorPrimary">@color/day_bar_blue</item>
+        <item name="colorPrimaryVariant">@color/day_bar_blue_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+    <style name="ThemeOverlay.Ft8CN.DayTeal" parent="">
+        <item name="ft8cn_brand_bar">@color/day_bar_teal</item>
+        <item name="ft8cn_brand_bar_variant">@color/day_bar_teal_dark</item>
+        <item name="colorPrimary">@color/day_bar_teal</item>
+        <item name="colorPrimaryVariant">@color/day_bar_teal_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+    <style name="ThemeOverlay.Ft8CN.DayGreen" parent="">
+        <item name="ft8cn_brand_bar">@color/day_bar_green</item>
+        <item name="ft8cn_brand_bar_variant">@color/day_bar_green_dark</item>
+        <item name="colorPrimary">@color/day_bar_green</item>
+        <item name="colorPrimaryVariant">@color/day_bar_green_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+    <style name="ThemeOverlay.Ft8CN.DayOrange" parent="">
+        <item name="ft8cn_brand_bar">@color/day_bar_orange</item>
+        <item name="ft8cn_brand_bar_variant">@color/day_bar_orange_dark</item>
+        <item name="colorPrimary">@color/day_bar_orange</item>
+        <item name="colorPrimaryVariant">@color/day_bar_orange_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+    <style name="ThemeOverlay.Ft8CN.DayRed" parent="">
+        <item name="ft8cn_brand_bar">@color/day_bar_red</item>
+        <item name="ft8cn_brand_bar_variant">@color/day_bar_red_dark</item>
+        <item name="colorPrimary">@color/day_bar_red</item>
+        <item name="colorPrimaryVariant">@color/day_bar_red_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
     </style>
 </resources>

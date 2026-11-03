@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 界面品牌色：工具栏、选项卡等可随“日夜模式/日间配色”切换的表面颜色。
+         日间模式下由 ThemeOverlay.Ft8CN.DayXxx 覆盖；夜间模式下固定为深蓝色。 -->
+    <attr name="ft8cn_brand_bar" format="color" />
+    <attr name="ft8cn_brand_bar_variant" format="color" />
+</resources>

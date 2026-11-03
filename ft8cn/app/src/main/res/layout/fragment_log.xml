@@ -17,7 +17,7 @@
             android:id="@+id/log_fragment_bar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@color/purple_500"
+            android:background="?attr/ft8cn_brand_bar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -127,6 +127,22 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <TextView
+            android:id="@+id/logPotaTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/transparent"
+            android:gravity="center"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:textColor="@color/text_view_color"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/log_fragment_bar"
+            tools:text="POTA: CN-0001" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/logRecyclerView"
             android:layout_width="0dp"
@@ -134,7 +150,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/log_fragment_bar" />
+            app:layout_constraintTop_toBottomOf="@+id/logPotaTextView" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

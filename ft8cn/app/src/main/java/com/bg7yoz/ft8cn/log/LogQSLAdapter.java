@@ -126,7 +126,13 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
                 , holder.record.getFreq()));
         holder.logQSOModeTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_mode)
                 , holder.record.getMode()));
-        holder.logQSOcCommentTextView.setText(holder.record.getComment());
+        String potaRef = holder.record.getPotaRef();
+        if (potaRef != null && potaRef.length() > 0) {
+            holder.logQSOcCommentTextView.setText(String.format("[POTA:%s] %s"
+                    , potaRef, holder.record.getComment()));
+        } else {
+            holder.logQSOcCommentTextView.setText(holder.record.getComment());
+        }
 
         if (holder.record.isLotW_QSL) {
             holder.logIsQSLTextView.setText(GeneralVariables.getStringFromResource(R.string.qsl_lotw_confirmation));

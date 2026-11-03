@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/help_dialog_style">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minWidth="300dp"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/themeDialogTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/theme_settings_title"
+            android:textColor="@color/help_dialog_text_color"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/nightModeButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/imagebutton_style"
+            android:text="@string/theme_mode_button"
+            android:textColor="#FFFFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/dayColorTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="@string/day_color_title"
+            android:textColor="@color/help_dialog_text_color"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/dayColorLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal" />
+
+        <TextView
+            android:id="@+id/uiLayoutTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="@string/ui_layout_title"
+            android:textColor="@color/help_dialog_text_color"
+            android:textSize="14sp" />
+
+        <RadioGroup
+            android:id="@+id/uiStyleRadioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/uiStyleTabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/help_dialog_text_color"
+                android:text="@string/ui_style_tabs"
+                android:textColor="@color/help_dialog_text_color"
+                android:textSize="13sp" />
+
+            <RadioButton
+                android:id="@+id/uiStyleStacked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/help_dialog_text_color"
+                android:text="@string/ui_style_stacked"
+                android:textColor="@color/help_dialog_text_color"
+                android:textSize="13sp" />
+
+            <RadioButton
+                android:id="@+id/uiStyleControlBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/help_dialog_text_color"
+                android:text="@string/ui_style_control_bar"
+                android:textColor="@color/help_dialog_text_color"
+                android:textSize="13sp" />
+
+            <RadioButton
+                android:id="@+id/uiStyleOriginal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/help_dialog_text_color"
+                android:text="@string/ui_style_original"
+                android:textColor="@color/help_dialog_text_color"
+                android:textSize="13sp" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/restoreOriginalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/imagebutton_style"
+            android:text="@string/restore_original"
+            android:textColor="#FFFFFFFF"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/themeDoneButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/imagebutton_style"
+            android:text="@string/close"
+            android:textColor="#FFFFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
+</ScrollView>

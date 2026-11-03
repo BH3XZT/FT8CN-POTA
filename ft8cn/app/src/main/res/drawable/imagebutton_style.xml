@@ -27,8 +27,8 @@
 
             <gradient
                 android:angle="90"
-                android:startColor="@color/button_start_color"
-                android:endColor="@color/button_end_color"
+                android:startColor="?attr/ft8cn_brand_bar"
+                android:endColor="?attr/ft8cn_brand_bar_variant"
                 android:type="linear" />
             <!-- 设置按钮的四个角为弧形 -->
             <!-- android:radius 弧形的半径 -->
@@ -49,12 +49,12 @@
             <!-- 填充的颜色 -->
             <stroke
                 android:width="0.5dp"
-                android:color="@color/button_stroke_color" />
+                android:color="?attr/ft8cn_brand_bar_variant" />
 
             <gradient
                 android:angle="90"
-                android:startColor="@color/button_start_color"
-                android:endColor="@color/button_end_color"
+                android:startColor="?attr/ft8cn_brand_bar"
+                android:endColor="?attr/ft8cn_brand_bar_variant"
                 android:type="linear" />
             <!-- 设置按钮的四个角为弧形 -->
             <!-- android:radius 弧形的半径 -->

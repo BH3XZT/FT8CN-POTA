@@ -4,27 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_navigation"
     app:startDestination="@id/menu_nav_calling_list">
+    <!-- 解码与呼叫合并成一个界面 -->
     <fragment
         android:id="@+id/menu_nav_calling_list"
-        android:name="com.bg7yoz.ft8cn.ui.CallingListFragment"
-        android:label="@string/nav_menu_title_decode_list"
-        tools:layout="@layout/fragment_calling_list" >
-        <action
-            android:id="@+id/action_menu_nav_calling_list_to_menu_nav_mycalling"
-            app:destination="@id/menu_nav_mycalling" />
-        <action
-            android:id="@+id/action_menu_nav_calling_list_to_menu_nav_history"
-            app:destination="@id/menu_nav_history" />
-    </fragment>
+        android:name="com.bg7yoz.ft8cn.ui.CombinedCallingFragment"
+        android:label="@string/nav_menu_title_decode_calling"
+        tools:layout="@layout/fragment_calling_combined" />
+    <!-- 原版界面模式下使用的独立呼叫界面 -->
     <fragment
         android:id="@+id/menu_nav_mycalling"
         android:name="com.bg7yoz.ft8cn.ui.MyCallingFragment"
         android:label="@string/nav_menu_title_my_calling"
-        tools:layout="@layout/fragment_my_calling" >
-        <action
-            android:id="@+id/action_menu_nav_mycalling_to_menu_nav_history"
-            app:destination="@id/menu_nav_history" />
-    </fragment>
+        tools:layout="@layout/fragment_my_calling" />
     <fragment
         android:id="@+id/menu_nav_config"
         android:name="com.bg7yoz.ft8cn.ui.ConfigFragment"

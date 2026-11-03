@@ -7,10 +7,6 @@ package com.bg7yoz.ft8cn.ui;
 
 import android.annotation.SuppressLint;
 import android.content.res.Configuration;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,17 +15,16 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -92,12 +87,13 @@ public class MyCallingFragment extends Fragment {
     //@RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
-        //Ft8Message ft8Message = (Ft8Message) item.getActionView().getTag();
-
-        int position = (int) item.getActionView().getTag();
+        View actionView = item.getActionView();
+        if (actionView == null || !isViewInside(actionView, transmitRecycleView)) {
+            return super.onContextItemSelected(item);//不是本列表的菜单，交给其它Fragment处理
+        }
+        int position = (int) actionView.getTag();
         Ft8Message ft8Message = transmitCallListAdapter.getMessageByPosition(position);
         if (ft8Message == null) return super.onContextItemSelected(item);
-        ;
 
         GeneralVariables.resetLaunchSupervision();//复位自动监管
         switch (item.getItemId()) {
@@ -151,7 +147,27 @@ public class MyCallingFragment extends Fragment {
 
         }
 
-        return super.onContextItemSelected(item);
+        return true;
+    }
+
+    /**
+     * 判断某个View是否属于指定容器（用于区分合并界面里两个列表的长按菜单归属）。
+     */
+    private static boolean isViewInside(View child, View ancestor) {
+        if (child == null || ancestor == null) {
+            return false;
+        }
+        ViewParent parent = child.getParent();
+        while (parent != null) {
+            if (parent == ancestor) {
+                return true;
+            }
+            if (!(parent instanceof View)) {
+                return false;
+            }
+            parent = parent.getParent();
+        }
+        return false;
     }
     /**
      * 跳转到日志查询界面
@@ -161,7 +177,7 @@ public class MyCallingFragment extends Fragment {
         mainViewModel.queryKey=callsign;//把呼号作为关键字提交
         NavController navController = Navigation.findNavController(requireActivity()
                 , R.id.fragmentContainerView);
-        navController.navigate(R.id.action_menu_nav_mycalling_to_menu_nav_history);//跳转到日志
+        navController.navigate(R.id.menu_nav_history);//跳转到日志
     }
     /**
      * 查询QRZ信息
@@ -183,9 +199,13 @@ public class MyCallingFragment extends Fragment {
         mainViewModel = MainViewModel.getInstance(this);
         binding = FragmentMyCallingBinding.inflate(inflater, container, false);
 
-        //当横屏时显示频谱图
+        //当横屏时显示频谱图；上下同屏模式下底部区域较矮，隐藏频谱避免布局异常
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            binding.messageSpectrumView.run(mainViewModel, this);
+            if (isStackedInCombined()) {
+                binding.messageSpectrumView.setVisibility(View.GONE);
+            } else {
+                binding.messageSpectrumView.run(mainViewModel, this);
+            }
         }
 
 
@@ -206,8 +226,8 @@ public class MyCallingFragment extends Fragment {
         transmitCallListAdapter.notifyDataSetChanged();
 
 
-        //设置消息列表滑动，用于快速呼叫
-        initRecyclerViewAction();
+        //设置消息列表单击/双击动作（原来的左右滑动已取消）
+        initListActions();
         //菜单
         requireActivity().registerForContextMenu(transmitRecycleView);
 
@@ -436,6 +456,15 @@ public class MyCallingFragment extends Fragment {
         return binding.getRoot();
     }
 
+    /**
+     * 是否处于“两个列表上下同屏”的合并界面。
+     */
+    private boolean isStackedInCombined() {
+        Fragment parent = getParentFragment();
+        return parent instanceof CombinedCallingFragment
+                && UiStyleManager.getStyle(requireContext()) == UiStyleManager.STYLE_STACKED;
+    }
+
     private void showFreeTextEdit() {
         if (mainViewModel.getTransitIsFreeText()) {
             binding.transFreeTextEdit.setVisibility(View.VISIBLE);
@@ -447,91 +476,43 @@ public class MyCallingFragment extends Fragment {
     }
 
     /**
-     * 设置列表滑动动作
+     * 设置列表单击/双击动作：单击呼叫，双击删除。
+     * 原来的左右滑动交互已取消。
      */
-    private void initRecyclerViewAction() {
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.ANIMATION_TYPE_DRAG
-                , ItemTouchHelper.START | ItemTouchHelper.END) {
+    private void initListActions() {
+        transmitCallListAdapter.setOnItemActionListener(new CallingListAdapter.OnItemActionListener() {
             @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder
-                    , @NonNull RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            //@RequiresApi(api = Build.VERSION_CODES.N)
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                if (direction == ItemTouchHelper.START) {
-                    Ft8Message message = transmitCallListAdapter.getMessageByViewHolder(viewHolder);
-                    if (message != null) {
-                        //呼叫的目标不能是自己
-                        if (!message.getCallsignFrom().equals("<...>")
-                                //&& !message.getCallsignFrom().equals(GeneralVariables.myCallsign)
-                                && !GeneralVariables.checkIsMyCallsign(message.getCallsignFrom())
-                                && !(message.i3 == 0 && message.n3 == 0)) {
-                            doCallNow(message);
-                        }
-                    }
-                    transmitCallListAdapter.notifyItemChanged(viewHolder.getAdapterPosition());
-                }
-                if (direction == ItemTouchHelper.END) {//删除
-                    transmitCallListAdapter.deleteMessage(viewHolder.getAdapterPosition());
-                    transmitCallListAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                }
-            }
-
-
-            @Override
-            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                //制作呼叫背景的图标显示
-                Drawable callIcon = ContextCompat.getDrawable(requireActivity(), R.drawable.ic_baseline_send_red_48);
-                Drawable delIcon = ContextCompat.getDrawable(requireActivity(), R.drawable.log_item_delete_icon);
-                Drawable background = new ColorDrawable(Color.LTGRAY);
-                Ft8Message message = transmitCallListAdapter.getMessageByViewHolder(viewHolder);
+            public void onItemClick(Ft8Message message) {
                 if (message == null) {
                     return;
                 }
-                if (message.getCallsignFrom().equals("<...>")) {//如果属于不能呼叫的消息，就不显示图标
-                    return;
+                //呼叫的目标不能是自己，遥测和自由文本不能呼叫
+                if (!message.getCallsignFrom().equals("<...>")
+                        && !GeneralVariables.checkIsMyCallsign(message.getCallsignFrom())
+                        && !(message.i3 == 0 && message.n3 == 0)) {
+                    doCallNow(message);
                 }
-                Drawable icon;
-                if (dX > 0) {
-                    icon = delIcon;
-                } else {
-                    icon = callIcon;
-                }
-                View itemView = viewHolder.itemView;
-                int iconMargin = (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
-                int iconLeft, iconRight, iconTop, iconBottom;
-                int backTop, backBottom, backLeft, backRight;
-                backTop = itemView.getTop();
-                backBottom = itemView.getBottom();
-                iconTop = itemView.getTop() + (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
-                iconBottom = iconTop + icon.getIntrinsicHeight();
-                if (dX > 0) {
-                    backLeft = itemView.getLeft();
-                    backRight = itemView.getLeft() + (int) dX;
-                    background.setBounds(backLeft, backTop, backRight, backBottom);
-                    iconLeft = itemView.getLeft() + iconMargin;
-                    iconRight = iconLeft + icon.getIntrinsicWidth();
-                    icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                } else if (dX < 0) {
-                    backRight = itemView.getRight();
-                    backLeft = itemView.getRight() + (int) dX;
-                    background.setBounds(backLeft, backTop, backRight, backBottom);
-                    iconRight = itemView.getRight() - iconMargin;
-                    iconLeft = iconRight - icon.getIntrinsicWidth();
-                    icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                } else {
-                    background.setBounds(0, 0, 0, 0);
-                    icon.setBounds(0, 0, 0, 0);
-                }
-                background.draw(c);
-                icon.draw(c);
-
             }
-        }).attachToRecyclerView(binding.transmitRecycleView);
+
+            @Override
+            public void onItemDoubleClick(Ft8Message message) {
+                if (transmitCallListAdapter.deleteMessage(message)) {
+                    //刷新发射消息数量显示
+                    mainViewModel.mutableTransmitMessagesCount.setValue(
+                            GeneralVariables.transmitMessages.size());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        //合并界面切换面板时视图会被销毁，注销长按菜单避免 Activity 持有旧视图
+        if (transmitRecycleView != null && getActivity() != null) {
+            getActivity().unregisterForContextMenu(transmitRecycleView);
+            transmitRecycleView = null;
+        }
+        binding = null;
     }
 }

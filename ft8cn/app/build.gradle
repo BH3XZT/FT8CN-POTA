@@ -21,8 +21,8 @@ android {
         applicationId "com.bg7yoz.ft8cn"
         minSdk 23
         targetSdk 33
-        versionCode 1
-        versionName '0.93'
+        versionCode 4
+        versionName '0.93.3'
 
 
         dataBinding{
@@ -82,6 +82,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
 
     implementation 'com.google.guava:guava:31.1-jre'//用于HashTable（多key的HashMap）
+    implementation 'com.google.zxing:core:3.5.2'//日志网页二维码
 
 
 

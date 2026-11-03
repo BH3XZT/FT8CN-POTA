@@ -30,6 +30,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -62,7 +63,10 @@ import com.bg7yoz.ft8cn.timer.UtcTimer;
 import com.bg7yoz.ft8cn.ui.FreqDialog;
 import com.bg7yoz.ft8cn.ui.SetVolumeDialog;
 import com.bg7yoz.ft8cn.ui.ShareLogsProgressDialog;
+import com.bg7yoz.ft8cn.ui.ThemeManager;
+import com.bg7yoz.ft8cn.ui.ThemeSettingsDialog;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
+import com.bg7yoz.ft8cn.ui.UiStyleManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.io.IOException;
@@ -83,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatView floatView;
 
     private ShareLogsProgressDialog dialog = null;//生成共享log的对话框
+    private ThemeSettingsDialog themeSettingsDialog = null;//界面颜色设置对话框
 
 
     String[] permissions = new String[]{Manifest.permission.RECORD_AUDIO
@@ -99,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //日夜模式已在 Ft8CNApplication.onCreate 里应用；这里只需在 super 之后套用日间配色
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             permissions = new String[]{Manifest.permission.RECORD_AUDIO
@@ -121,6 +127,8 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 , WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         super.onCreate(savedInstanceState);
+        //应用保存的日间配色（必须在 inflate 布局之前）
+        ThemeManager.applyDayOverlay(this);
         GeneralVariables.getInstance().setMainContext(getApplicationContext());
 
         //判断是不是简体中文
@@ -205,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
         assert navHostFragment != null;//断言不为空
         navController = navHostFragment.getNavController();
 
+        setupBottomNavigation();
         NavigationUI.setupWithNavController(binding.navView, navController);
         //此处增加回调是因为当APP主动navigation后，无法回到解码的界面
         binding.navView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -219,7 +228,9 @@ public class MainActivity extends AppCompatActivity {
 
         //FT8CN Ver %s\nBG7YOZ\n%s
         binding.welcomTextView.setText(String.format(getString(R.string.version_info)
-                , GeneralVariables.VERSION, GeneralVariables.BUILD_DATE));
+                , GeneralVariables.VERSION, GeneralVariables.BUILD_DATE)
+                + "\n" + getString(R.string.fork_info_line1)
+                + "\n" + getString(R.string.fork_info_line2));
 
         floatView = new FloatView(this, 32);
         if (!animatorRunned) {
@@ -390,6 +401,33 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
+     * 按当前界面布局方式构建底部导航：
+     * 合并界面 = 4 个标签（解码/呼叫、频谱、通联记录、设置）；
+     * 原版界面 = 5 个标签（解码、呼叫、频谱、通联记录、设置）。
+     */
+    private void setupBottomNavigation() {
+        boolean original = UiStyleManager.isOriginal(this);
+        Menu menu = binding.navView.getMenu();
+        menu.clear();
+        if (original) {
+            menu.add(0, R.id.menu_nav_calling_list, 0, getString(R.string.nav_menu_title_decode_list))
+                    .setIcon(R.drawable.nav_calling_list_image);
+            menu.add(0, R.id.menu_nav_mycalling, 1, getString(R.string.nav_menu_title_my_calling))
+                    .setIcon(R.drawable.nav_my_calling_image);
+        } else {
+            menu.add(0, R.id.menu_nav_calling_list, 0, getString(R.string.nav_menu_title_decode_calling))
+                    .setIcon(R.drawable.nav_calling_list_image);
+        }
+        menu.add(0, R.id.menu_nav_spectrum, 2, getString(R.string.spectrum))
+                .setIcon(R.drawable.ic_nav_spectrum_24);
+        menu.add(0, R.id.menu_nav_history, 3, getString(R.string.nav_menu_title_history))
+                .setIcon(R.drawable.ic_baseline_history_24);
+        menu.add(0, R.id.menu_nav_config, 4, getString(R.string.nav_menu_title_config))
+                .setIcon(R.drawable.ic_baseline_settings_24);
+    }
+
+
+    /**
      * 添加浮动按钮
      */
 
@@ -418,6 +456,15 @@ public class MainActivity extends AppCompatActivity {
                                 button.setImageResource(R.drawable.ic_baseline_fullscreen_24);
                             }
                         }
+                    }
+                });
+        //界面颜色（日夜模式 / 日间配色）
+        floatView.addButton(R.id.float_theme, "float_theme", R.drawable.ic_baseline_dark_mode_24
+                , new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        themeSettingsDialog = new ThemeSettingsDialog(MainActivity.this, mainViewModel);
+                        themeSettingsDialog.show();
                     }
                 });
         floatView.addButton(R.id.float_freq, "float_freq", R.drawable.ic_baseline_freq_24
@@ -748,6 +795,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         unregisterBluetoothReceiver();
+        //主题设置对话框在旋转屏幕时要关闭，避免 WindowLeaked
+        if (themeSettingsDialog != null) {
+            if (themeSettingsDialog.isShowing()) {
+                themeSettingsDialog.dismiss();
+            }
+            themeSettingsDialog = null;
+        }
         //保证屏幕方向切换后，不会因为对话框导致闪退
         if (Boolean.TRUE.equals(mainViewModel.mutableImportShareRunning.getValue())) {
             if (dialog != null) {

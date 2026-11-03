@@ -53,7 +53,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
     public static DatabaseOpr getInstance(@Nullable Context context, @Nullable String databaseName) {
         if (instance == null) {
-            instance = new DatabaseOpr(context, databaseName, null, 15);
+            instance = new DatabaseOpr(context, databaseName, null, 16);
         }
         return instance;
     }
@@ -210,6 +210,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , "isLotW_import INTEGER DEFAULT 0");
             alterTable(sqLiteDatabase, "QSLTable", "isLotW_QSL"
                     , "isLotW_QSL INTEGER DEFAULT 0");
+            //POTA 公园编号（0.93.2 新增）
+            alterTable(sqLiteDatabase, "QSLTable", "pota_ref"
+                    , "pota_ref TEXT");
 
         } else {
             sqLiteDatabase.execSQL("CREATE TABLE QSLTable (\n" +
@@ -232,6 +235,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     "freq TEXT,\n" +
                     "station_callsign TEXT,\n" +
                     "my_gridsquare TEXT,\n" +
+                    "pota_ref TEXT,\n" +
                     "comment TEXT)");
         }
 
@@ -996,6 +1000,13 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                         , cursor.getString(cursor.getColumnIndex("my_gridsquare")).length()
                         , cursor.getString(cursor.getColumnIndex("my_gridsquare"))));
             }
+            if (cursor.getColumnIndex("pota_ref") != -1) {
+                String potaRef = cursor.getString(cursor.getColumnIndex("pota_ref"));
+                if (potaRef != null && potaRef.length() > 0) {
+                    logStr.append(String.format("<MY_POTA_REF:%d>%s "
+                            , potaRef.length(), potaRef));
+                }
+            }
 
             if (cursor.getColumnIndex("operator") != -1) {
                 if (cursor.getString(cursor.getColumnIndex("operator")) != null) {
@@ -1188,7 +1199,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         if (!checkIsQSL(record)) {//如果不存在日志数据就添加
             querySQL = "INSERT INTO QSLTable(call, isQSL,isLotW_import,isLotW_QSL,gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
                     "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare," +
-                    "comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                    "pota_ref,comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
             db.execSQL(querySQL, new String[]{record.getToCallsign()
                     , String.valueOf(record.isQSL ? 1 : 0)
@@ -1207,6 +1218,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , BaseRigOperation.getFrequencyFloat(record.getBandFreq())
                     , record.getMyCallsign()
                     , record.getMyMaidenGrid()
+                    , GeneralVariables.getPotaPark()
                     , record.getComment()});
             if (afterInsertQSLData!=null){
                 afterInsertQSLData.doAfterInsert(false,true);//说明是新的QSL
@@ -1809,6 +1821,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 record.setStation_callsign(cursor.getString(cursor.getColumnIndex("station_callsign")));
                 record.setMy_gridsquare(cursor.getString(cursor.getColumnIndex("my_gridsquare")));
                 record.setComment(cursor.getString(cursor.getColumnIndex("comment")));
+                if (cursor.getColumnIndex("pota_ref") != -1) {
+                    record.setPotaRef(cursor.getString(cursor.getColumnIndex("pota_ref")));
+                }
                 records.add(record);
             }
             cursor.close();
@@ -2066,6 +2081,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
                 if (name.equalsIgnoreCase("grid")) {
                     GeneralVariables.setMyMaidenheadGrid(result);
+                }
+                if (name.equalsIgnoreCase("potaPark")) {
+                    GeneralVariables.setPotaPark(result);
                 }
                 if (name.equalsIgnoreCase("callsign")) {
                     GeneralVariables.myCallsign = result;

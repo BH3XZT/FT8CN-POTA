@@ -175,5 +175,25 @@
     <color name="char_bar_15">#770A8F</color>
     <color name="char_bar_16">#61024D</color>
 
+    <!-- ===== 界面颜色切换（日间可选配色 / 夜间固定深蓝色） ===== -->
+    <!-- 日间主题色：工具栏与品牌表面颜色 -->
+    <color name="day_bar_purple">#FF6200EE</color>
+    <color name="day_bar_purple_dark">#FF3700B3</color>
+    <color name="day_bar_blue">#FF1565C0</color>
+    <color name="day_bar_blue_dark">#FF0D47A1</color>
+    <color name="day_bar_teal">#FF00897B</color>
+    <color name="day_bar_teal_dark">#FF00695C</color>
+    <color name="day_bar_green">#FF2E7D32</color>
+    <color name="day_bar_green_dark">#FF1B5E20</color>
+    <color name="day_bar_orange">#FFEF6C00</color>
+    <color name="day_bar_orange_dark">#FFE65100</color>
+    <color name="day_bar_red">#FFC62828</color>
+    <color name="day_bar_red_dark">#FFB71C1C</color>
+
+    <!-- 夜间主题色：固定深蓝色 -->
+    <color name="night_bar_primary">#FF0B2447</color>
+    <color name="night_bar_variant">#FF06182F</color>
+    <color name="night_accent">#FF5B9BD5</color>
+    <color name="night_background">#FF06101F</color>
 
 </resources>

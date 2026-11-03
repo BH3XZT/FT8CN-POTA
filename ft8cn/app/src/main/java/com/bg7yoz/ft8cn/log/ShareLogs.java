@@ -186,6 +186,13 @@ public class ShareLogs {
                             , cursor.getString(cursor.getColumnIndex("my_gridsquare")).length()
                             , cursor.getString(cursor.getColumnIndex("my_gridsquare"))).getBytes());
                 }
+                if (cursor.getColumnIndex("pota_ref") != -1) {
+                    String potaRef = cursor.getString(cursor.getColumnIndex("pota_ref"));
+                    if (potaRef != null && potaRef.length() > 0) {
+                        fileOutputStream.write(String.format("<MY_POTA_REF:%d>%s "
+                                , potaRef.length(), potaRef).getBytes());
+                    }
+                }
 
                 if (cursor.getColumnIndex("operator") != -1) {
                     if (cursor.getString(cursor.getColumnIndex("operator")) != null) {

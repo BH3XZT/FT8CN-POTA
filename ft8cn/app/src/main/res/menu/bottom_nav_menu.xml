@@ -4,11 +4,7 @@
     <item
         android:id="@+id/menu_nav_calling_list"
         android:icon="@drawable/nav_calling_list_image"
-        android:title="@string/nav_menu_title_decode_list" />
-    <item
-        android:id="@+id/menu_nav_mycalling"
-        android:icon="@drawable/nav_my_calling_image"
-        android:title="@string/nav_menu_title_my_calling" />
+        android:title="@string/nav_menu_title_decode_calling" />
     <item
         android:id="@+id/menu_nav_spectrum"
         android:icon="@drawable/ic_nav_spectrum_24"

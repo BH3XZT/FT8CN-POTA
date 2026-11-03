@@ -1,9 +1,51 @@
-# FT8CN
-Developed by BG7YOZ and hosted by N0BOY
+# FT8CN（POTA 特化版）
 
-Run FT8 natively on Android
+Developed by BG7YOZ and hosted by N0BOY · POTA edition maintained by BH3XZT
 
-Check [Releases](https://github.com/N0BOY/FT8CN/releases) to download the latest apk file.
+本仓库是 [N0BOY/FT8CN](https://github.com/N0BOY/FT8CN) 的 GitHub fork（派生仓库），基于上游 0.93 进行 POTA 特化改造。
+
+Run FT8 natively on Android。上游原版下载见 [N0BOY/FT8CN Releases](https://github.com/N0BOY/FT8CN/releases)；
+本仓库（POTA 特化）的发行版见 [BH3XZT/FT8CN-POTA Releases](https://github.com/BH3XZT/FT8CN-POTA/releases)。
+
+## 致辞
+
+首先，衷心感谢 **FT8CN 原作者 BG7YOZ** 的辛勤工作：FT8CN 把 FT8 的编解码、频谱瀑布、多品牌电台控制、日志管理等完整能力带到了 Android 手机上，并多年持续更新、开源共享；
+也感谢 **N0BOY** 对项目的托管与维护，以及上游所有贡献者、翻译者和测试者。没有他们的工作，就不会有这个 POTA 特化版本。
+
+本版本（v0.93.3）主要解决以下问题：
+
+1. **POTA 户外通联缺少公园信息记录**：公园编号无法随 QSO 一起保存，也无法按公园编号和运行时间段导出 ADIF；
+2. **日志网页陈旧且不便打开**：界面老旧、没有主题/配色切换，手机上打开或把网址传到其他设备不方便；
+3. **上一版本遗留问题**：「合并界面：两个列表上下同屏」在横屏模式下闪退；切换界面颜色后 CQ、分享等功能键颜色不跟随；
+4. **缺少回到原版的入口**：新增功能较多，需要一个“一键恢复原版”的入口。
+
+## APP 端变化
+
+- **界面颜色切换**：一键切换日间 / 夜间模式，夜间固定深蓝色；日间提供紫、蓝、青、绿、橙、红 6 种主题色，CQ、发送/暂停、分享、导出等功能键会一起变色；
+- **界面布局可选**：合并界面支持「选项卡切换」「两个列表上下同屏」「呼叫控制条常驻底部」三种方式，并保留「原版界面（5 个底部标签）」；
+- **解码与呼叫合并**：底部导航由 5 项精简为 4 项，单击解码消息即可呼叫并自动切换到呼叫面板；
+- **列表交互**：单条消息由左右滑动改为「单击 = 呼叫、双击 = 删除」，长按菜单保留；
+- **POTA 公园编号**：设置界面新增 POTA 公园编号栏，解码/呼叫页与通联记录页同步显示当前公园编号，每条 QSO 自动记录所属公园；
+- **通联记录**：列表备注处显示该条 QSO 的 POTA 编号；
+- **日志导出入口**：点击导出按钮后弹出窗口，显示日志网页网址、二维码，并提供「复制网址 / 打开」按钮；
+- **一键恢复原版**：界面设置中一键复位布局、配色与 POTA 编号；
+- **启动页说明**：版本日期下方分两行显示「界面调整|POTA特化」「调整人：BH3XZT」。
+
+## 网页端变化
+
+- **现代化界面**：本地日志网页改为深色科技风卡片布局，表格/表单响应式适配手机与桌面浏览器；
+- **昼夜模式 + 颜色模式**：右上角可切换日间/夜间配色，并可在 6 种主题色间切换，选择保存在浏览器本地；
+- **POTA 日志导出页**：按「公园编号 + 运行日期/时间」筛选并下载 ADIF，每条记录写入 `MY_POTA_REF`；自动按运行日期列出每日窗口，可逐日下载，并提供按公园编号统计；
+- **首页**：POTA 卡片 + 功能入口卡片化；未设置公园编号时不显示 POTA 卡片；
+- **二维码与复制网址**：APP 端弹窗提供二维码和复制网址按钮，同一局域网设备扫码即可打开日志网页。
+
+## 下载与版本
+
+- 最新发行版：**v0.93.3（POTA 特化）**，见 [Releases](https://github.com/BH3XZT/FT8CN-POTA/releases)
+- 版本历史与改动明细：[CHANGELOG.md](CHANGELOG.md)
+- 上游来源、许可证与同步说明：[UPSTREAM.md](UPSTREAM.md)
+- 许可证：**MIT**（见 [LICENSE](LICENSE)）；第三方组件许可证见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+
 
 ```
 免责声明：

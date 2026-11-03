@@ -456,6 +456,18 @@
     <string name="swlMode_help">swlMode.txt</string>
     <string name="audio_output_help">audio_output_help.txt</string>
     <string name="clear_cache_data_help">clear_cache_data.txt</string>
+    <string name="html_pota_export_title">POTA 公园日志导出</string>
+    <string name="html_pota_hint">按公园编号与运行时间筛选并导出 ADIF，每条记录写入 MY_POTA_REF。</string>
+    <string name="html_pota_start_date">开始日期</string>
+    <string name="html_pota_end_date">结束日期</string>
+    <string name="html_pota_start_time">开始时间</string>
+    <string name="html_pota_end_time">结束时间</string>
+    <string name="html_pota_daily">按运行日期区分</string>
+    <string name="html_pota_by_park">按公园编号统计</string>
+    <string name="html_pota_download_day">下载 ADIF</string>
+    <string name="html_pota_no_logs">没有符合条件的日志</string>
+    <string name="html_pota_total">合计</string>
+    <string name="html_pota_query">查询 / 导出</string>
     <string name="html_query_logs">查询日志</string>
     <string name="html_qso_all">全部</string>
     <string name="html_qso_source">数据来源</string>
@@ -543,5 +555,41 @@
     <string name="config_enable_qrz">自动上传至QRZ.com</string>
     <string name="qrz_help">qrz.txt</string>
     <string name="alram_switch">告警开关</string>
+
+    <!-- ===== 界面颜色切换 ===== -->
+    <string name="nav_menu_title_decode_calling">解码 / 呼叫</string>
+    <string name="theme_settings_title">界面颜色</string>
+    <string name="theme_mode_button">日夜模式</string>
+    <string name="theme_mode_day">日间</string>
+    <string name="theme_mode_night">夜间（深蓝）</string>
+    <string name="day_color_title">日间配色</string>
+    <string name="theme_color_purple">紫色</string>
+    <string name="theme_color_blue">蓝色</string>
+    <string name="theme_color_teal">青色</string>
+    <string name="theme_color_green">绿色</string>
+    <string name="theme_color_orange">橙色</string>
+    <string name="theme_color_red">红色</string>
+    <string name="theme_color_saved_night_tip">已保存，切换到日间模式后生效</string>
+
+    <!-- ===== 界面布局方式 ===== -->
+    <string name="fork_info_line1">界面调整|POTA特化</string>
+    <string name="fork_info_line2">调整人：BH3XZT</string>
+    <string name="log_web_title">日志网页</string>
+    <string name="log_web_hint">可用手机扫码，或在同一局域网的其他设备浏览器中打开下面的网址。</string>
+    <string name="copy_url">复制网址</string>
+    <string name="open_url">打开</string>
+    <string name="url_copied">网址已复制到剪贴板</string>
+    <string name="restore_original">一键恢复原版（复位所有新功能）</string>
+    <string name="restore_done">已恢复原版界面与默认配色，并清空 POTA 公园编号。</string>
+    <string name="pota_park">POTA公园编号</string>
+    <string name="pl_pota_park">例如 CN-0001</string>
+    <string name="pota_help_message">填写 POTA 公园编号（例如 CN-0001）。该编号会写入 ADIF 日志的 MY_POTA_REF 字段，并在解码/呼叫、通联记录页面显示。</string>
+    <string name="ui_layout_title">界面布局</string>
+    <string name="ui_style_tabs">合并界面：选项卡切换（默认）</string>
+    <string name="ui_style_stacked">合并界面：两个列表上下同屏</string>
+    <string name="ui_style_control_bar">合并界面：呼叫控制条常驻底部</string>
+    <string name="ui_style_original">恢复原版界面（底部 5 个标签）</string>
+    <string name="ui_style_changed">布局已切换</string>
+    <string name="calling_list_button">呼叫列表</string>
 
 </resources>

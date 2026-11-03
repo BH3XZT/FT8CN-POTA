@@ -7,10 +7,6 @@ package com.bg7yoz.ft8cn.ui;
 
 import android.annotation.SuppressLint;
 import android.content.res.Configuration;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,16 +15,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.animation.AnimationUtils;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -74,8 +69,8 @@ public class CallingListFragment extends Fragment {
             assert binding.spectrumView != null;
             binding.spectrumView.run(mainViewModel, this);
         }
-        //设置呼号滑动，用于快速呼叫
-        initRecyclerViewAction();
+        //设置列表单击/双击动作（原来的左右滑动已取消）
+        initListActions();
 
         //监听按钮
         binding.timerImageButton.setOnClickListener(new View.OnClickListener() {
@@ -142,14 +137,22 @@ public class CallingListFragment extends Fragment {
             }
         });
 
-        //显示梅登海德网格
-        GeneralVariables.mutableMyMaidenheadGrid.observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                binding.maidenheadTextView.setText(String.format(
-                        getString(R.string.my_grid), s));
-            }
-        });
+        //显示梅登海德网格与 POTA 公园编号（0.93.2）
+        GeneralVariables.mutableMyMaidenheadGrid.observe(getViewLifecycleOwner()
+                , new Observer<String>() {
+                    @Override
+                    public void onChanged(String s) {
+                        updateGridAndPark();
+                    }
+                });
+        GeneralVariables.mutablePotaPark.observe(getViewLifecycleOwner()
+                , new Observer<String>() {
+                    @Override
+                    public void onChanged(String park) {
+                        updateGridAndPark();
+                    }
+                });
+        updateGridAndPark();
 
         //观察是否处于解码状态
         mainViewModel.mutableIsDecoding.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
@@ -210,98 +213,46 @@ public class CallingListFragment extends Fragment {
     }
 
     /**
-     * 设置列表滑动动作
+     * 刷新网格与 POTA 公园编号的显示。
      */
-    private void initRecyclerViewAction() {
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.ANIMATION_TYPE_DRAG
-                , ItemTouchHelper.START | ItemTouchHelper.END) {
+    private void updateGridAndPark() {
+        String grid = String.format(getString(R.string.my_grid)
+                , GeneralVariables.getMyMaidenheadGrid());
+        String park = GeneralVariables.getPotaParkStr();
+        if (park.length() > 0) {
+            binding.maidenheadTextView.setText(grid + "  ·  " + park);
+        } else {
+            binding.maidenheadTextView.setText(grid);
+        }
+    }
+
+    /**
+     * 设置列表单击/双击动作：单击呼叫，双击删除。
+     * 原来的左右滑动交互已取消。
+     */
+    private void initListActions() {
+        callingListAdapter.setOnItemActionListener(new CallingListAdapter.OnItemActionListener() {
             @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder
-                    , @NonNull RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            //@RequiresApi(api = Build.VERSION_CODES.N)
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                if (direction == ItemTouchHelper.START) {//呼叫
-                    Ft8Message message = callingListAdapter.getMessageByViewHolder(viewHolder);
-                    if (message != null) {
-                        //呼叫的目标不能是自己
-                        if (!message.getCallsignFrom().equals("<...>")
-                                //&& !message.getCallsignFrom().equals(GeneralVariables.myCallsign)
-                                && !GeneralVariables.checkIsMyCallsign(message.getCallsignFrom())
-                                && !(message.i3 == 0 && (message.n3 == 0 || message.n3 == 5))) {//遥测和自由文本不能呼叫
-                            doCallNow(message);
-                        } else {
-                            callingListAdapter.notifyItemChanged(viewHolder.getAdapterPosition());
-                        }
-                    }
-                }
-                if (direction == ItemTouchHelper.END) {//删除
-                    callingListAdapter.deleteMessage(viewHolder.getAdapterPosition());
-                    callingListAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                }
-
-
-            }
-
-            @Override
-            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView
-                    , @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY
-                    , int actionState, boolean isCurrentlyActive) {
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                //制作呼叫背景的图标显示
-                final Drawable callIcon = ContextCompat.getDrawable(requireActivity()
-                        , R.drawable.ic_baseline_send_red_48);
-                final Drawable delIcon = ContextCompat.getDrawable(requireActivity()
-                        , R.drawable.log_item_delete_icon);
-                final Drawable background = new ColorDrawable(Color.LTGRAY);
-                Ft8Message message = callingListAdapter.getMessageByViewHolder(viewHolder);
+            public void onItemClick(Ft8Message message) {
                 if (message == null) {
                     return;
                 }
-                if (message.getCallsignFrom().equals("<...>")) {//如果属于不能呼叫的消息，就不显示图标
-                    return;
+                //呼叫的目标不能是自己，遥测和自由文本不能呼叫
+                if (!message.getCallsignFrom().equals("<...>")
+                        && !GeneralVariables.checkIsMyCallsign(message.getCallsignFrom())
+                        && !(message.i3 == 0 && (message.n3 == 0 || message.n3 == 5))) {
+                    doCallNow(message);
                 }
-                Drawable icon;
-                if (dX > 0) {
-                    icon = delIcon;
-                } else {
-                    icon = callIcon;
-                }
-                View itemView = viewHolder.itemView;
-                int iconMargin = (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
-                int iconLeft, iconRight, iconTop, iconBottom;
-                int backTop, backBottom, backLeft, backRight;
-                backTop = itemView.getTop();
-                backBottom = itemView.getBottom();
-                iconTop = itemView.getTop() + (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
-                iconBottom = iconTop + icon.getIntrinsicHeight();
-                if (dX > 0) {
-                    backLeft = itemView.getLeft();
-                    backRight = itemView.getLeft() + (int) dX;
-                    background.setBounds(backLeft, backTop, backRight, backBottom);
-                    iconLeft = itemView.getLeft() + iconMargin;
-                    iconRight = iconLeft + icon.getIntrinsicWidth();
-                    icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                } else if (dX < 0) {
-                    backRight = itemView.getRight();
-                    backLeft = itemView.getRight() + (int) dX;
-                    background.setBounds(backLeft, backTop, backRight, backBottom);
-                    iconRight = itemView.getRight() - iconMargin;
-                    iconLeft = iconRight - icon.getIntrinsicWidth();
-                    icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                } else {
-                    background.setBounds(0, 0, 0, 0);
-                    icon.setBounds(0, 0, 0, 0);
-                }
-                background.draw(c);
-                icon.draw(c);
-
             }
-        }).attachToRecyclerView(binding.callingListRecyclerView);
+
+            @Override
+            public void onItemDoubleClick(Ft8Message message) {
+                if (callingListAdapter.deleteMessage(message)) {
+                    //刷新解码数量显示
+                    mainViewModel.mutable_Decoded_Counter.setValue(mainViewModel.currentDecodeCount);
+                }
+            }
+        });
     }
 
     /**
@@ -322,7 +273,7 @@ public class CallingListFragment extends Fragment {
                 , 1, message.extraInfo);
         mainViewModel.ft8TransmitSignal.transmitNow();
         GeneralVariables.resetLaunchSupervision();//复位自动监管
-        navigateToMyCallFragment();//跳转到发射界面
+        switchToCallingPanel();//切换到“呼叫”面板
         return true;
     }
 
@@ -334,16 +285,21 @@ public class CallingListFragment extends Fragment {
         mainViewModel.queryKey=callsign;//把呼号作为关键字提交
         NavController navController = Navigation.findNavController(requireActivity()
                 , R.id.fragmentContainerView);
-        navController.navigate(R.id.action_menu_nav_calling_list_to_menu_nav_history);//跳转到日志
+        navController.navigate(R.id.menu_nav_history);//跳转到日志
     }
 
     /**
-     * 跳转到发射界面
+     * 打开呼叫面板：合并界面内部切换，原版界面导航到独立的呼叫页面。
      */
-    private void navigateToMyCallFragment() {
+    private void switchToCallingPanel() {
+        Fragment parent = getParentFragment();
+        if (parent instanceof CombinedCallingFragment) {
+            ((CombinedCallingFragment) parent).showCallingTab();
+            return;
+        }
         NavController navController = Navigation.findNavController(requireActivity()
                 , R.id.fragmentContainerView);
-        navController.navigate(R.id.action_menu_nav_calling_list_to_menu_nav_mycalling);//跳转到发射界面
+        navController.navigate(R.id.menu_nav_mycalling);
     }
 
     /**
@@ -355,12 +311,14 @@ public class CallingListFragment extends Fragment {
     //@RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
-
-        //Ft8Message ft8Message = (Ft8Message) item.getActionView().getTag();
-        int position = (int) item.getActionView().getTag();
+        View actionView = item.getActionView();
+        if (actionView == null || !isViewInside(actionView, callListRecyclerView)) {
+            return super.onContextItemSelected(item);//不是本列表的菜单，交给其它Fragment处理
+        }
+        int position = (int) actionView.getTag();
         Ft8Message ft8Message = callingListAdapter.getMessageByPosition(position);
         if (ft8Message == null) return super.onContextItemSelected(item);
-        ;
+
         switch (item.getItemId()) {
             case 0:
                 Log.d(TAG, "关注：" + ft8Message.getCallsignTo());
@@ -380,7 +338,7 @@ public class CallingListFragment extends Fragment {
                         , 1, ft8Message.extraInfo);
                 mainViewModel.ft8TransmitSignal.transmitNow();
 
-                navigateToMyCallFragment();//跳转到发射界面
+                switchToCallingPanel();//切换到“呼叫”面板
                 break;
             case 2:
                 Log.d(TAG, "关注：" + ft8Message.getCallsignFrom());
@@ -404,7 +362,7 @@ public class CallingListFragment extends Fragment {
                         , -1, ft8Message.extraInfo);
                 mainViewModel.ft8TransmitSignal.transmitNow();
                 GeneralVariables.resetLaunchSupervision();//复位自动监管
-                navigateToMyCallFragment();//跳转到发射界面
+                switchToCallingPanel();//切换到“呼叫”面板
                 break;
             case 5://to 的QRZ
                 showQrzFragment(ft8Message.getCallsignTo());
@@ -421,7 +379,27 @@ public class CallingListFragment extends Fragment {
 
         }
 
-        return super.onContextItemSelected(item);
+        return true;
+    }
+
+    /**
+     * 判断某个View是否属于指定容器（用于区分合并界面里两个列表的长按菜单归属）。
+     */
+    private static boolean isViewInside(View child, View ancestor) {
+        if (child == null || ancestor == null) {
+            return false;
+        }
+        ViewParent parent = child.getParent();
+        while (parent != null) {
+            if (parent == ancestor) {
+                return true;
+            }
+            if (!(parent instanceof View)) {
+                return false;
+            }
+            parent = parent.getParent();
+        }
+        return false;
     }
 
     /**
@@ -445,6 +423,11 @@ public class CallingListFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        //合并界面切换面板时视图会被销毁，注销长按菜单避免 Activity 持有旧视图
+        if (callListRecyclerView != null && getActivity() != null) {
+            getActivity().unregisterForContextMenu(callListRecyclerView);
+            callListRecyclerView = null;
+        }
         binding = null;
     }
 }

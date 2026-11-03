@@ -162,7 +162,23 @@ public class GeneralVariables {
     //private static final Map<String,String> callsignAndGrids=new HashMap<>();
 
     public static String myCallsign = "";//我的呼号
+    public static String potaPark = "";//POTA公园编号
+    public static MutableLiveData<String> mutablePotaPark = new MutableLiveData<>();
     public static String toModifier = "";//呼叫的修饰符
+
+    public static void setPotaPark(String park) {
+        potaPark = park == null ? "" : park.trim();
+        mutablePotaPark.postValue(potaPark);
+    }
+
+    public static String getPotaPark() {
+        return potaPark == null ? "" : potaPark;
+    }
+
+    public static String getPotaParkStr() {
+        String park = getPotaPark();
+        return park.length() == 0 ? "" : "POTA: " + park;
+    }
     private static float baseFrequency = 1000;//声音频率
 
     public static boolean simpleCallItemMode = false;//紧凑型消息

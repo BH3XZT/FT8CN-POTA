@@ -3,6 +3,8 @@
 
 
     <style name="HelpDialog" parent="android:style/Theme.Dialog">
+        <item name="ft8cn_brand_bar">@color/purple_500</item>
+        <item name="ft8cn_brand_bar_variant">@color/purple_700</item>
         <!--背景颜色及和透明程度-->
         <item name="android:windowBackground">@android:color/transparent</item>
         <!--是否去除标题 -->
@@ -16,6 +18,8 @@
     </style>
 
     <style name="InitDataDialog" parent="android:style/Theme.Dialog">
+        <item name="ft8cn_brand_bar">@color/purple_500</item>
+        <item name="ft8cn_brand_bar_variant">@color/purple_700</item>
         <!--背景颜色及和透明程度-->
         <item name="android:windowBackground">@android:color/transparent</item>
         <!--是否去除标题 -->
@@ -29,6 +33,8 @@
     </style>
 
     <style name="ShareProgressDialog" parent="android:style/Theme.Material.Dialog">
+        <item name="ft8cn_brand_bar">@color/purple_500</item>
+        <item name="ft8cn_brand_bar_variant">@color/purple_700</item>
         <!--背景颜色及和透明程度-->
         <item name="android:windowBackground">@android:color/transparent</item>
         <!--是否去除标题 -->

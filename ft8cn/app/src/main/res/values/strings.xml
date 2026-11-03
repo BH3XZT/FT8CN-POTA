@@ -465,6 +465,18 @@
     <string name="audio_output_help">audio_output_help_en.txt</string>
     <string name="deep_mode_help">decode_help_en.txt</string>
     <string name="clear_cache_data_help">clear_cache_data_en.txt</string>
+    <string name="html_pota_export_title">POTA activation log export</string>
+    <string name="html_pota_hint">Filter by park reference and operation time, then download ADIF. Each record is written with MY_POTA_REF.</string>
+    <string name="html_pota_start_date">Start date</string>
+    <string name="html_pota_end_date">End date</string>
+    <string name="html_pota_start_time">Start time</string>
+    <string name="html_pota_end_time">End time</string>
+    <string name="html_pota_daily">Daily activation windows</string>
+    <string name="html_pota_by_park">Count by park</string>
+    <string name="html_pota_download_day">Download ADIF</string>
+    <string name="html_pota_no_logs">No records matched.</string>
+    <string name="html_pota_total">Total</string>
+    <string name="html_pota_query">Query / Export</string>
     <string name="html_query_logs">Query the logs</string>
     <string name="html_qso_all">All</string>
     <string name="html_qso_source">Data sources</string>
@@ -552,5 +564,41 @@
     <string name="swr_switch_off" translatable="false">SWR Off</string>
     <string name="alc_switch_on" translatable="false">ALC On</string>
     <string name="alc_switch_off" translatable="false">ALC Off</string>
+
+    <!-- ===== 界面颜色切换 ===== -->
+    <string name="nav_menu_title_decode_calling">Decode / Calling</string>
+    <string name="theme_settings_title">Interface color</string>
+    <string name="theme_mode_button">Day / Night mode</string>
+    <string name="theme_mode_day">Day</string>
+    <string name="theme_mode_night">Night (deep blue)</string>
+    <string name="day_color_title">Day theme color</string>
+    <string name="theme_color_purple">Purple</string>
+    <string name="theme_color_blue">Blue</string>
+    <string name="theme_color_teal">Teal</string>
+    <string name="theme_color_green">Green</string>
+    <string name="theme_color_orange">Orange</string>
+    <string name="theme_color_red">Red</string>
+    <string name="theme_color_saved_night_tip">Saved. The color applies in day mode.</string>
+
+    <!-- ===== Interface layout ===== -->
+    <string name="fork_info_line1">UI adjusted | POTA edition</string>
+    <string name="fork_info_line2">by BH3XZT</string>
+    <string name="log_web_title">Log web page</string>
+    <string name="log_web_hint">Scan the QR code, or open the URL below on another device in the same LAN.</string>
+    <string name="copy_url">Copy URL</string>
+    <string name="open_url">Open</string>
+    <string name="url_copied">URL copied to clipboard</string>
+    <string name="restore_original">Restore original (reset all new features)</string>
+    <string name="restore_done">Original UI restored, default colors applied, POTA park cleared.</string>
+    <string name="pota_park">POTA park</string>
+    <string name="pl_pota_park">e.g. CN-0001</string>
+    <string name="pota_help_message">Enter the POTA park reference (e.g. CN-0001). It is written into the ADIF log as MY_POTA_REF and shown on the decode/calling and log pages.</string>
+    <string name="ui_layout_title">Interface layout</string>
+    <string name="ui_style_tabs">Merged: switch by tabs (default)</string>
+    <string name="ui_style_stacked">Merged: two lists stacked on one screen</string>
+    <string name="ui_style_control_bar">Merged: calling control bar fixed at bottom</string>
+    <string name="ui_style_original">Restore original UI (5 bottom tabs)</string>
+    <string name="ui_style_changed">Layout changed</string>
+    <string name="calling_list_button">Calling list</string>
 
 </resources>

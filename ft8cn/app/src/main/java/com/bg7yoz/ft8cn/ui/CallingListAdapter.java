@@ -10,6 +10,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Paint;
 import android.opengl.Visibility;
+import android.os.SystemClock;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,12 +35,25 @@ import java.util.ArrayList;
 public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.CallingListItemHolder> {
     public enum ShowMode{CALLING_LIST,MY_CALLING,TRACKER}
     private static final String TAG = "CallingListAdapter";
+    /** 双击判定间隔（毫秒） */
+    private static final long DOUBLE_CLICK_INTERVAL = 300L;
     private final MainViewModel mainViewModel;
     private final ArrayList<Ft8Message> ft8MessageArrayList;
     private final Context context;
 
     private final ShowMode showMode;
     private View.OnClickListener onItemClickListener;
+    private OnItemActionListener itemActionListener;
+
+    /**
+     * 列表条目的单击/双击交互。
+     * 单击：呼叫该条消息的发起者；双击：从列表中删除该条消息。
+     */
+    public interface OnItemActionListener {
+        void onItemClick(Ft8Message message);
+
+        void onItemDoubleClick(Ft8Message message);
+    }
 
     private final View.OnCreateContextMenuListener menuListener=new View.OnCreateContextMenuListener() {
         @Override
@@ -141,7 +155,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         }else {
             view = layoutInflater.inflate(R.layout.call_list_holder_item, parent, false);
         }
-        return new CallingListItemHolder(view,onItemClickListener,menuListener);
+        return new CallingListItemHolder(view,menuListener);
     }
 
     /**
@@ -150,9 +164,29 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
      * @param position 在列表中的位置
      */
     public void deleteMessage(int position) {
-        if (position >= 0) {
+        if (position >= 0 && position < ft8MessageArrayList.size()) {
             ft8MessageArrayList.remove(position);
         }
+    }
+
+    /**
+     * 按消息对象删除，并通知列表刷新。
+     * 单击/双击交互使用对象删除，避免列表被裁剪后位置变化导致删错消息。
+     *
+     * @param message 消息
+     * @return 是否删除成功
+     */
+    public boolean deleteMessage(Ft8Message message) {
+        if (message == null) {
+            return false;
+        }
+        int index = ft8MessageArrayList.indexOf(message);
+        if (index < 0) {
+            return false;
+        }
+        ft8MessageArrayList.remove(index);
+        notifyItemRemoved(index);
+        return true;
     }
 
     public Ft8Message getMessageByPosition(int position){
@@ -391,7 +425,14 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         this.onItemClickListener = onItemClickListener;
     }
 
-    static class CallingListItemHolder extends RecyclerView.ViewHolder {
+    /**
+     * 设置单击/双击交互监听。
+     */
+    public void setOnItemActionListener(OnItemActionListener listener) {
+        this.itemActionListener = listener;
+    }
+
+    class CallingListItemHolder extends RecyclerView.ViewHolder {
         private static final String TAG = "CallingListItemHolder";
         ConstraintLayout callListHolderConstraintLayout;
         TextView callingListIdBTextView, callListDtTextView, callingListFreqTextView,
@@ -408,8 +449,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         boolean otherBandIsQso = false;
 
 
-        public CallingListItemHolder(@NonNull View itemView, View.OnClickListener listener
-                    ,View.OnCreateContextMenuListener menuListener) {
+        public CallingListItemHolder(@NonNull View itemView, View.OnCreateContextMenuListener menuListener) {
             super(itemView);
             callListHolderConstraintLayout = itemView.findViewById(R.id.callListHolderConstraintLayout);
             callingListIdBTextView = itemView.findViewById(R.id.callingListIdBTextView);
@@ -439,7 +479,58 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             ituFromImageView.setVisibility(View.GONE);
             cqFromImageView.setVisibility(View.GONE);
             itemView.setTag(-1);
-            itemView.setOnClickListener(listener);
+            //单击：呼叫；双击：删除（替代原来的左右滑动）
+            itemView.setOnClickListener(new View.OnClickListener() {
+                private long lastClickTime = 0L;
+                private Ft8Message lastClickMessage = null;
+
+                @Override
+                public void onClick(View view) {
+                    //兼容网格追踪界面：它只设置普通的单击监听
+                    if (itemActionListener == null) {
+                        if (onItemClickListener != null) {
+                            onItemClickListener.onClick(view);
+                        }
+                        return;
+                    }
+                    int position = getAdapterPosition();
+                    if (position == RecyclerView.NO_POSITION
+                            || position < 0 || position >= ft8MessageArrayList.size()) {
+                        return;
+                    }
+                    //点击时就把消息对象取出来，后续不再依赖列表位置（列表会被裁剪/复用）
+                    final Ft8Message message = ft8MessageArrayList.get(position);
+                    long now = SystemClock.elapsedRealtime();
+                    //必须是同一条消息的连续两次点击才算双击，避免快速点两条不同的消息时误删
+                    if (message == lastClickMessage
+                            && now - lastClickTime < DOUBLE_CLICK_INTERVAL) {//双击：删除
+                        lastClickTime = 0L;
+                        lastClickMessage = null;
+                        if (itemActionListener != null) {
+                            itemActionListener.onItemDoubleClick(message);
+                        }
+                        return;
+                    }
+                    //先等待 300ms，确认不是双击后再按单击处理（呼叫）
+                    final long clickTime = now;
+                    lastClickTime = now;
+                    lastClickMessage = message;
+                    view.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (lastClickTime != clickTime) {
+                                return;//期间发生了第二次点击，已按双击处理
+                            }
+                            lastClickTime = 0L;
+                            lastClickMessage = null;
+                            if (itemActionListener != null
+                                    && ft8MessageArrayList.contains(message)) {
+                                itemActionListener.onItemClick(message);
+                            }
+                        }
+                    }, DOUBLE_CLICK_INTERVAL);
+                }
+            });
             itemView.setOnCreateContextMenuListener(menuListener);
 
         }

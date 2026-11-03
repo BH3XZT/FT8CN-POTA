@@ -79,6 +79,8 @@ public class LogHttpServer extends NanoHTTPD {
             return getSWLQsoMessages(session);
         } else if (uri.equalsIgnoreCase("QSOLogs")) {//查QSO日志
             return getQsoLogs(session);
+        } else if (uri.equalsIgnoreCase("POTA")) {//POTA日志导出（0.93.2）
+            return getPotaExport(session);
         } else if (uri.equalsIgnoreCase("CALLSIGNGRID")) {//查呼号与网格的对应关系
             msg = HTML_STRING(showCallGridList());
         } else if (uri.equalsIgnoreCase("GETCALLSIGNQTH")) {
@@ -1983,5 +1985,221 @@ public class LogHttpServer extends NanoHTTPD {
 //        cursor.close();
 //        return logStr.toString();
 //    }
+
+    private static String potaParam(Map<String, String> pars, String key) {
+        String value = pars.get(key);
+        return value == null ? "" : value.trim();
+    }
+
+    private static String potaTimeExpr(String value, String defaultValue) {
+        if (value == null || value.length() == 0) {
+            return defaultValue;
+        }
+        String digits = value.replaceAll("\\D", "");
+        if (digits.length() >= 6) {
+            return digits.substring(0, 6);
+        }
+        if (digits.length() >= 4) {
+            return digits.substring(0, 4) + "00";
+        }
+        return defaultValue;
+    }
+
+    private static String sanitizePotaFileName(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replaceAll("[^A-Za-z0-9_\\-]", "_");
+    }
+
+    /**
+     * 保证导出的 ADIF 每条记录都带 MY_POTA_REF（0.93.2）。
+     */
+    private static String ensurePotaRef(String adif, String park) {
+        if (park == null || park.length() == 0) {
+            return adif;
+        }
+        String clean = adif.replaceAll("(?i)<my_pota_ref:\\d+>[^ <]*\\s*", "");
+        return clean.replace("<eor>", String.format("<MY_POTA_REF:%d>%s <eor>", park.length(), park));
+    }
+
+    private static String makePotaAdiFileName(String park, String startDate, String endDate
+            , String startTime, String endTime) {
+        StringBuilder fileName = new StringBuilder("FT8CN_POTA");
+        String parkPart = sanitizePotaFileName(park);
+        if (parkPart.length() > 0) {
+            fileName.append("_").append(parkPart);
+        }
+        if (startDate.length() > 0) {
+            fileName.append("_").append(sanitizePotaFileName(startDate));
+        }
+        if (startTime.length() > 0) {
+            fileName.append("T").append(sanitizePotaFileName(startTime));
+        }
+        if (endDate.length() > 0) {
+            fileName.append("_").append(sanitizePotaFileName(endDate));
+        }
+        if (endTime.length() > 0) {
+            fileName.append("T").append(sanitizePotaFileName(endTime));
+        }
+        fileName.append(".adi");
+        return fileName.toString();
+    }
+
+    /**
+     * POTA 日志导出页面：按公园编号 + 运行时间筛选，可下载带 MY_POTA_REF 的 ADIF。
+     * 同时给出“按日运行窗口”和“按公园编号统计”，方便区分多次 POTA 活动。
+     */
+    @SuppressLint({"DefaultLocale", "Range"})
+    private Response getPotaExport(IHTTPSession session) {
+        Map<String, String> pars = session.getParms();
+        String park = GeneralVariables.getPotaPark();
+        if (pars.get("park") != null) {
+            park = Objects.requireNonNull(pars.get("park")).trim().toUpperCase();
+        }
+        String startDate = potaParam(pars, "start_date");
+        String endDate = potaParam(pars, "end_date");
+        String startTime = potaParam(pars, "start_time");
+        String endTime = potaParam(pars, "end_time");
+        String callsign = potaParam(pars, "callsign");
+        String exportFile = potaParam(pars, "exportFile");
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1 ");
+        ArrayList<String> argList = new ArrayList<>();
+        if (park.length() > 0) {
+            where.append(" AND (pota_ref LIKE ?) ");
+            argList.add("%" + park + "%");
+        }
+        if (startDate.length() > 0) {
+            where.append(" AND (SUBSTR(qso_date,1,8)||SUBSTR(time_on,1,6) >= ?) ");
+            argList.add(startDate.replace("-", "") + potaTimeExpr(startTime, "000000"));
+        }
+        if (endDate.length() > 0) {
+            where.append(" AND (SUBSTR(qso_date,1,8)||SUBSTR(time_on,1,6) <= ?) ");
+            argList.add(endDate.replace("-", "") + potaTimeExpr(endTime, "235959"));
+        }
+        if (callsign.length() > 0) {
+            where.append(" AND (([call] LIKE ?)OR(station_callsign LIKE ?)) ");
+            argList.add("%" + callsign + "%");
+            argList.add("%" + callsign + "%");
+        }
+        String[] args = argList.toArray(new String[0]);
+        String order = " ORDER BY qso_date DESC, time_on DESC ";
+
+        Cursor cursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                "SELECT * FROM QSLTable " + where + order, args);
+
+        if (exportFile.equalsIgnoreCase("ADI")) {
+            String adif = mainViewModel.databaseOpr.downQSLTable(cursor, false);
+            cursor.close();
+            adif = ensurePotaRef(adif, park);
+            Response response = newFixedLengthResponse(Response.Status.OK, "text/plain", adif);
+            response.addHeader("Content-Disposition",
+                    "attachment;filename=" + makePotaAdiFileName(park, startDate, endDate, startTime, endTime));
+            return response;
+        }
+        cursor.close();
+
+        StringBuilder result = new StringBuilder();
+        result.append("<div class=\"card\"><h2>")
+                .append(GeneralVariables.getStringFromResource(R.string.html_pota_export_title))
+                .append("</h2><div class=\"muted\">")
+                .append(GeneralVariables.getStringFromResource(R.string.html_pota_hint))
+                .append("</div><br><form method=get action=\"/POTA\">")
+                .append("<fieldset><legend>").append(GeneralVariables.getStringFromResource(R.string.pota_park))
+                .append("</legend><input type=text name=park value=\"").append(park)
+                .append("\" placeholder=\"CN-0001\" style=\"min-width:160px\"></fieldset>")
+                .append("<fieldset><legend>")
+                .append(GeneralVariables.getStringFromResource(R.string.html_pota_start_date)).append(" / ")
+                .append(GeneralVariables.getStringFromResource(R.string.html_pota_end_date))
+                .append("</legend>")
+                .append("<input type=date name=start_date value=\"").append(startDate).append("\"> ")
+                .append("<input type=time name=start_time value=\"").append(startTime).append("\"> ~ ")
+                .append("<input type=date name=end_date value=\"").append(endDate).append("\"> ")
+                .append("<input type=time name=end_time value=\"").append(endTime).append("\"></fieldset>")
+                .append("<fieldset><legend>")
+                .append(GeneralVariables.getStringFromResource(R.string.html_callsign))
+                .append("</legend><input type=text name=callsign value=\"").append(callsign).append("\"> ")
+                .append("<input type=submit value=\"")
+                .append(GeneralVariables.getStringFromResource(R.string.html_pota_query))
+                .append("\"></fieldset></form>")
+                .append("<a class=\"btn\" href=\"/POTA?park=").append(park)
+                .append("&start_date=").append(startDate).append("&end_date=").append(endDate)
+                .append("&start_time=").append(startTime).append("&end_time=").append(endTime)
+                .append("&callsign=").append(callsign)
+                .append("&exportFile=adi\">")
+                .append(GeneralVariables.getStringFromResource(R.string.html_pota_download_day))
+                .append(" (ADIF)</a></div>");
+
+        //总计
+        Cursor totalCursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                "SELECT COUNT(*) AS c FROM QSLTable " + where, args);
+        int total = 0;
+        if (totalCursor.moveToFirst()) {
+            total = totalCursor.getInt(totalCursor.getColumnIndex("c"));
+        }
+        totalCursor.close();
+
+        result.append("<div class=\"card\"><h2>")
+                .append(GeneralVariables.getStringFromResource(R.string.html_pota_daily))
+                .append("</h2><div class=\"muted\">")
+                .append(GeneralVariables.getStringFromResource(R.string.html_pota_total))
+                .append(": ").append(total)
+                .append(" · POTA: ").append(park.length() > 0 ? park : "-")
+                .append("</div>");
+        Cursor dayCursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                "SELECT SUBSTR(qso_date,1,8) AS d, COUNT(*) AS c FROM QSLTable "
+                        + where + " GROUP BY d ORDER BY d DESC LIMIT 90", args);
+        if (dayCursor.getCount() == 0) {
+            result.append("<br><span class=\"warn\">")
+                    .append(GeneralVariables.getStringFromResource(R.string.html_pota_no_logs))
+                    .append("</span>");
+        } else {
+            result.append("<table><tr><th>")
+                    .append(GeneralVariables.getStringFromResource(R.string.html_qsl_start_day))
+                    .append("</th><th>QSO</th><th></th></tr>");
+            while (dayCursor.moveToNext()) {
+                String day = dayCursor.getString(dayCursor.getColumnIndex("d"));
+                int count = dayCursor.getInt(dayCursor.getColumnIndex("c"));
+                String dayDisplay = day;
+                if (day != null && day.length() == 8) {
+                    dayDisplay = day.substring(0, 4) + "-" + day.substring(4, 6) + "-" + day.substring(6, 8);
+                }
+                result.append("<tr><td>").append(dayDisplay).append("</td><td>").append(count)
+                        .append("</td><td><a class=\"btn\" href=\"/POTA?park=").append(park)
+                        .append("&start_date=").append(dayDisplay).append("&end_date=").append(dayDisplay)
+                        .append("&exportFile=adi\">")
+                        .append(GeneralVariables.getStringFromResource(R.string.html_pota_download_day))
+                        .append("</a></td></tr>");
+            }
+        }
+        dayCursor.close();
+        result.append("</table></div>");
+
+        //按公园编号统计
+        result.append("<div class=\"card\"><h2>")
+                .append(GeneralVariables.getStringFromResource(R.string.html_pota_by_park))
+                .append("</h2>");
+        Cursor parkCursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                "SELECT pota_ref AS p, COUNT(*) AS c FROM QSLTable "
+                        + " WHERE pota_ref IS NOT NULL AND pota_ref<>'' "
+                        + " GROUP BY p ORDER BY c DESC LIMIT 60", null);
+        if (parkCursor.getCount() == 0) {
+            result.append("<span class=\"muted\">")
+                    .append(GeneralVariables.getStringFromResource(R.string.html_pota_no_logs))
+                    .append("</span>");
+        } else {
+            result.append("<table><tr><th>POTA</th><th>QSO</th></tr>");
+            while (parkCursor.moveToNext()) {
+                result.append("<tr><td>").append(parkCursor.getString(parkCursor.getColumnIndex("p")))
+                        .append("</td><td>").append(parkCursor.getInt(parkCursor.getColumnIndex("c")))
+                        .append("</td></tr>");
+            }
+        }
+        parkCursor.close();
+        result.append("</table></div>");
+
+        return newFixedLengthResponse(HtmlContext.HTML_STRING(result.toString()));
+    }
 
 }

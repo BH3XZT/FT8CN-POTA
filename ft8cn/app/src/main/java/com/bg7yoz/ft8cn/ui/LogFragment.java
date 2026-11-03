@@ -110,6 +110,16 @@ public class LogFragment extends Fragment {
         binding.inputMycallEdit.setText(mainViewModel.queryKey);
         queryByCallsign(mainViewModel.queryKey, 0);
 
+        //POTA公园编号显示（0.93.2）
+        updatePotaInfo(GeneralVariables.getPotaPark());
+        GeneralVariables.mutablePotaPark.observe(getViewLifecycleOwner()
+                , new Observer<String>() {
+                    @Override
+                    public void onChanged(String park) {
+                        updatePotaInfo(park);
+                    }
+                });
+
         mainViewModel.mutableQueryFilter.observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
@@ -153,10 +163,8 @@ public class LogFragment extends Fragment {
                             , GeneralVariables.getStringFromResource(R.string.export_null)
                             , false).show();
                 } else {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , String.format(GeneralVariables.getStringFromResource(R.string.export_info)
-                            , getLocalIp(), LogHttpServer.DEFAULT_PORT)
-                            , false).show();
+                    new LogServerDialog(requireContext(), String.format("http://%s:%d"
+                            , getLocalIp(), LogHttpServer.DEFAULT_PORT)).show();
                 }
 
             }
@@ -324,6 +332,21 @@ public class LogFragment extends Fragment {
 //        }
 //        return false;
 //    }
+
+    /**
+     * 刷新 POTA 公园编号显示。
+     */
+    private void updatePotaInfo(String park) {
+        if (binding == null || binding.logPotaTextView == null) {
+            return;
+        }
+        if (park == null || park.trim().length() == 0) {
+            binding.logPotaTextView.setVisibility(View.GONE);
+        } else {
+            binding.logPotaTextView.setText(String.format("POTA: %s", park.trim()));
+            binding.logPotaTextView.setVisibility(View.VISIBLE);
+        }
+    }
 
     private void loadQueryData() {
         if ((!loading)) {

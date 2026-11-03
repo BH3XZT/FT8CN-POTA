@@ -121,6 +121,25 @@ public class ConfigFragment extends Fragment {
             GeneralVariables.myCallsign = (editable.toString().toUpperCase().trim());
         }
     };
+    //POTA公园编号
+    private final TextWatcher onPotaParkChanged = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            String park = editable.toString().toUpperCase().trim();
+            GeneralVariables.setPotaPark(park);
+            writeConfig("potaPark", park);
+        }
+    };
     //发射频率
     private final TextWatcher onFreqEditorChanged = new TextWatcher() {
         @Override
@@ -427,6 +446,17 @@ public class ConfigFragment extends Fragment {
         binding.inputMycallEdit.removeTextChangedListener(onMyCallEditorChanged);
         binding.inputMycallEdit.setText(GeneralVariables.myCallsign);
         binding.inputMycallEdit.addTextChangedListener(onMyCallEditorChanged);
+
+        //POTA公园编号
+        binding.inputPotaParkEdit.removeTextChangedListener(onPotaParkChanged);
+        binding.inputPotaParkEdit.setText(GeneralVariables.getPotaPark());
+        binding.inputPotaParkEdit.addTextChangedListener(onPotaParkChanged);
+        binding.potaHelpImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ToastMessage.show(getString(R.string.pota_help_message), true);
+            }
+        });
 
         //修饰符
         binding.modifierEdit.removeTextChangedListener(onModifierEditorChanged);

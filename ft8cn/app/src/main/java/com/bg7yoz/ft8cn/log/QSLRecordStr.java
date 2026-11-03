@@ -26,6 +26,7 @@ public class QSLRecordStr implements Serializable {
     private String station_callsign="";
     private String my_gridsquare="";
     private String comment;
+    private String potaRef = "";
     public String where = null;
     public boolean isQSL = false;//手工确认
     public boolean isLotW_import = false;//是否是lotw导入的
@@ -166,6 +167,14 @@ public class QSLRecordStr implements Serializable {
 
     public String getComment() {
         return comment;
+    }
+
+    public String getPotaRef() {
+        return potaRef;
+    }
+
+    public void setPotaRef(String potaRef) {
+        this.potaRef = potaRef == null ? "" : potaRef;
     }
 
     public void setComment(String comment) {

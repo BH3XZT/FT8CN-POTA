@@ -87,6 +87,12 @@ public class WaterfallView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         setClickable(true);
+        //尺寸为 0 时不要创建 Bitmap（横屏小区域可能触发 IllegalArgumentException）
+        if (w <= 0 || h <= 0) {
+            lastBitMap = null;
+            _canvas = null;
+            return;
+        }
         blockHeight = getHeight() / (symbols * cycle);
         freq_width = (float) getWidth() / 3000f;
         lastBitMap = Bitmap.createBitmap(w, h, ARGB_8888);
@@ -171,6 +177,9 @@ public class WaterfallView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        if (lastBitMap == null) {
+            return;
+        }
         canvas.drawBitmap(lastBitMap, 0, 0, null);
 
         //计算频率
